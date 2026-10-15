@@ -1,1 +1,32 @@
-{"build":{"development":{"developmentClient":true,"distribution":"internal"},"preview":{"distribution":"internal","ios":{"simulator":false}},"production":{"env":{"EXPO_PUBLIC_API_URL":"https://your-backend-host.example.com"},"ios":{"bundleIdentifier":"com.fabrod.resalescanner"}}},"cli":{"version":">= 13.0.0"},"submit":{"production":{"ios":{"appleId":"YOUR_APPLE_ID@example.com"}}}}
+{
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://resale-scanner-app.onrender.com"
+      },
+      "ios": {
+        "bundleIdentifier": "com.fabrod.resalescanner"
+      }
+    }
+  },
+  "cli": {
+    "version": ">= 13.0.0"
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "YOUR_APPLE_ID@example.com"
+      }
+    }
+  }
+}
