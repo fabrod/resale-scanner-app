@@ -29,7 +29,7 @@ Copy/paste into App Store Connect → App Information + Version Information. Rev
 
 - **Keywords (100 chars max, comma-separated, no spaces needed):**
   reselling,flip,arbitrage,barcode scanner,upc,ebay,poshmark,sold comps,thrift,profit calculator
-- **Support URL:** [your support page or email page]
+- **Support URL:** https://github.com/fabrod/resale-scanner-app/blob/main/store/privacy-policy.md *(contact: fabrod035@gmail.com — replace with a dedicated support page if you build one)*
 - **Marketing URL:** [optional]
 - **Privacy Policy URL:** [URL where you host store/privacy-policy.md]
 - **Copyright:** [your name or company — must match your Apple Developer account]
