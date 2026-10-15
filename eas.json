@@ -13,9 +13,6 @@
     "production": {
       "env": {
         "EXPO_PUBLIC_API_URL": "https://resale-scanner-app.onrender.com"
-      },
-      "ios": {
-        "bundleIdentifier": "com.fabrod.resalescanner"
       }
     }
   },
