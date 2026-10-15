@@ -38,12 +38,15 @@ Copy/paste into App Store Connect → App Information + Version Information. Rev
 
 ## Screenshots (App Store Connect → Media)
 
-Required minimum: **6.9" display** screenshots (portrait 1290×2796 or 1320×2868). Apple accepts the 6.9" set and scales down for smaller phones. Also upload:
+Ready-made set in `store/screenshots/` (1290×2796 PNG, 6.7" display — accepted for the 6.5"/6.9" slots):
 
-- **6.5" display** (1242×2688 or 1284×2778) — recommended for older-device store pages
-- **App icon:** 1024×1024 PNG, no transparency, no rounded corners (Apple masks it)
+1. `screenshot-1-scanner.png` — "Scan it in the aisle"
+2. `screenshot-2-verdict.png` — "Know your profit before you buy"
+3. `screenshot-3-listit.png` — "List it in seconds"
 
-Suggested shot order: (1) Scanner in action, (2) BUY verdict with profit math, (3) Sold comps, (4) List-it drafts, (5) History.
+Upload order above. Add 1–2 more later from a real device build if you want (History, Settings).
+
+- **App icon:** `assets/icon.png` — 1024×1024 PNG, no transparency, square corners (Apple masks it)
 
 ## App Review notes (optional but useful)
 

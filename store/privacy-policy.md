@@ -1,7 +1,7 @@
 # Privacy Policy — Resale Scanner
 
-**Effective date:** [fill in before publishing]
-**Contact:** [your support email]
+**Effective date:** October 15, 2026
+**Contact:** [your support email — required before publishing]
 
 Resale Scanner ("the app") helps you scan product barcodes in stores, estimate resale value, and draft marketplace listings. This policy explains what information the app touches.
 
