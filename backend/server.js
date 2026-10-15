@@ -28,6 +28,44 @@ const SOLD_API_URL = process.env.SOLD_API_URL || 'https://api.compsapi.com';
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
+// --- Privacy policy (public page for the App Store listing) ------------------
+app.get('/privacy', (_req, res) => {
+  res.type('html').send(`<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Resale Scanner</title>
+<style>body{font-family:-apple-system,Helvetica,Arial,sans-serif;max-width:720px;margin:40px auto;padding:0 20px;line-height:1.6;color:#1a1a2e}h1{font-size:28px}h2{font-size:20px;margin-top:28px}ul{padding-left:20px}</style>
+</head><body>
+<h1>Privacy Policy — Resale Scanner</h1>
+<p><strong>Effective date:</strong> October 15, 2026<br><strong>Contact:</strong> fabrod035@gmail.com</p>
+<p>Resale Scanner ("the app") helps you scan product barcodes in stores, estimate resale value, and draft marketplace listings. This policy explains what information the app touches.</p>
+<h2>1. What the app does with your camera</h2>
+<p>The app requests camera access solely to scan barcodes while you use the Scanner screen. Barcode detection happens on your device. Camera images and video frames are <strong>not</strong> recorded, stored, or transmitted anywhere.</p>
+<h2>2. What is transmitted</h2>
+<p>When you scan a barcode or type a product name, the app sends only the product identifier to the app backend so it can return product details and sold-price information:</p>
+<ul>
+<li><strong>Barcode numbers (UPC/EAN)</strong> are sent to the UPC lookup service (upcitemdb) to identify the product.</li>
+<li><strong>Product names/queries</strong> are sent to the sold-price service (CompsAPI) to retrieve eBay sold-listing data.</li>
+</ul>
+<p>These requests contain no name, email, account, device identifier, or location data. Scan history is never uploaded.</p>
+<h2>3. What stays on your device</h2>
+<p>Your scan history, verdict settings (fee %, shipping, minimum profit), and app preferences are stored locally on your device only. Clearing the app's data or deleting the app removes them.</p>
+<h2>4. What we do NOT do</h2>
+<ul>
+<li>No accounts, no sign-in, no contact collection.</li>
+<li>No analytics, tracking, or advertising SDKs.</li>
+<li>No sale, rental, or sharing of your information with anyone.</li>
+<li>No location tracking.</li>
+</ul>
+<h2>5. Third-party services</h2>
+<p>The app retrieves product data through the services named in Section 2, via the app's backend. Their own privacy policies apply to data they receive (a barcode number or product query only).</p>
+<h2>6. Children</h2>
+<p>The app is not directed at children under 13 and collects no personal information from anyone.</p>
+<h2>7. Changes</h2>
+<p>If this policy changes, the updated version will be posted at this URL with a new effective date.</p>
+</body></html>`);
+});
+
 // --- UPC → product ---------------------------------------------------------
 app.get('/api/lookup', async (req, res) => {
   const upc = String(req.query.upc || '').replace(/\D/g, '');
