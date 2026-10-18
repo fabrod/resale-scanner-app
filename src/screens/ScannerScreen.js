@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { lookupUpc } from '../lib/upc';
 
 export default function ScannerScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
+  const isFocused = useIsFocused();
+  const scanInFlight = useRef(false);
+  const scanSession = useRef(0);
   const [scanned, setScanned] = useState(false);
   const [status, setStatus] = useState('');
+  const [cameraError, setCameraError] = useState('');
+
+  useFocusEffect(useCallback(() => {
+    scanInFlight.current = false;
+    setScanned(false);
+    setStatus('');
+    setCameraError('');
+    return () => { scanSession.current += 1; };
+  }, []));
 
   if (!permission) return <View style={styles.center}><Text>Requesting camera…</Text></View>;
   if (!permission.granted) {
@@ -24,36 +37,42 @@ export default function ScannerScreen({ navigation }) {
   }
 
   const onScanned = async ({ data, type }) => {
-    if (scanned) return;
+    if (scanInFlight.current || !navigation.isFocused()) return;
     // QR codes usually hold URLs, not product IDs — route those to manual entry.
     if (String(type).toLowerCase().includes('qr')) {
       setStatus('That looks like a QR code (usually a link, not a product ID). Use manual entry for these.');
       return;
     }
+    scanInFlight.current = true;
+    const session = scanSession.current;
     setScanned(true);
     setStatus('Looking up product…');
+    let product = null;
     try {
-      const product = await lookupUpc(data);
-      navigation.navigate('Verdict', {
-        upc: data,
-        product: product || { title: '', brand: '' },
-        productUnknown: !product,
-      });
+      product = await lookupUpc(data);
     } catch {
-      navigation.navigate('Verdict', { upc: data, product: { title: '', brand: '' }, productUnknown: true });
-    } finally {
-      setScanned(false);
-      setStatus('');
+      // An unavailable lookup service still allows a manual price check.
     }
+    if (session !== scanSession.current || !navigation.isFocused()) return;
+    navigation.navigate('Verdict', {
+      upc: data,
+      product: product || { title: '', brand: '' },
+      productUnknown: !product,
+    });
   };
 
   return (
     <View style={styles.container}>
-      <CameraView
-        style={styles.camera}
-        barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'] }}
-        onBarcodeScanned={onScanned}
-      />
+      {isFocused && !cameraError ? (
+        <CameraView
+          style={styles.camera}
+          barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'] }}
+          onBarcodeScanned={scanned ? undefined : onScanned}
+          onMountError={() => setCameraError('Camera could not start. You can enter the product manually.')}
+        />
+      ) : (
+        <View style={styles.center}><Text style={styles.text}>{cameraError}</Text></View>
+      )}
       <View style={styles.footer}>
         {!!status && <Text style={styles.status}>{status}</Text>}
         <Text style={styles.hint}>Point at the product barcode (the striped one).</Text>

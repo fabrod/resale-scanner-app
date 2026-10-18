@@ -20,6 +20,7 @@ export default function VerdictScreen({ route, navigation }) {
   useEffect(() => { loadSettings().then(setSettings); }, []);
 
   const productLabel = [product.brand, product.title].filter(Boolean).join(' ') || 'Unknown product';
+  const canCalculate = settings !== null && !!storePrice && !!resalePrice;
 
   const checkComps = async () => {
     try {
@@ -39,6 +40,7 @@ export default function VerdictScreen({ route, navigation }) {
   };
 
   const runVerdict = async () => {
+    if (!settings) return;
     const r = computeVerdict({
       storePrice: parseFloat(storePrice),
       resalePrice: parseFloat(resalePrice),
@@ -47,13 +49,17 @@ export default function VerdictScreen({ route, navigation }) {
       minProfit: settings.minProfit,
     });
     setResult(r);
-    await addHistoryRecord({
-      date: new Date().toISOString(),
-      product: productLabel,
-      storePrice: parseFloat(storePrice),
-      resalePrice: parseFloat(resalePrice),
-      ...r,
-    });
+    try {
+      await addHistoryRecord({
+        date: new Date().toISOString(),
+        product: productLabel,
+        storePrice: parseFloat(storePrice),
+        resalePrice: parseFloat(resalePrice),
+        ...r,
+      });
+    } catch {
+      Alert.alert('Could not save history', 'Your result is shown, but this check could not be saved to history.');
+    }
   };
 
   const openEbaySold = () => Linking.openURL(ebaySoldUrl(productLabel));
@@ -82,8 +88,8 @@ export default function VerdictScreen({ route, navigation }) {
       </View>
 
       <TouchableOpacity
-        style={[styles.button, (!storePrice || !resalePrice) && styles.disabled]}
-        disabled={!storePrice || !resalePrice}
+        style={[styles.button, !canCalculate && styles.disabled]}
+        disabled={!canCalculate}
         onPress={runVerdict}
       >
         <Text style={styles.buttonText}>Run the numbers</Text>

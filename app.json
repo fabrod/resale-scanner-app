@@ -1,1 +1,45 @@
-{"expo":{"android":{"adaptiveIcon":{"backgroundColor":"#121350","foregroundImage":"./assets/adaptive-icon.png"},"package":"com.fabrod.resalescanner","permissions":["CAMERA"]},"icon":"./assets/icon.png","ios":{"bundleIdentifier":"com.fabrod.resalescanner","infoPlist":{"NSCameraUsageDescription":"Resale Scanner uses your camera to scan product barcodes in the store."},"supportsTablet":false},"name":"Resale Scanner","orientation":"portrait","plugins":[["expo-camera",{"cameraPermission":"Allow Resale Scanner to access your camera to scan product barcodes."}]],"scheme":"resale-scanner","slug":"resale-scanner","splash":{"backgroundColor":"#121350","image":"./assets/splash.png","resizeMode":"contain"},"userInterfaceStyle":"automatic","version":"1.0.0"}}
+{
+  "expo": {
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#121350",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "package": "com.fabrod.resalescanner",
+      "permissions": [
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "icon": "./assets/icon.png",
+    "ios": {
+      "bundleIdentifier": "com.fabrod.resalescanner",
+      "buildNumber": "3",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Resale Scanner uses your camera to scan product barcodes in the store.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "supportsTablet": false
+    },
+    "name": "Resale Scanner",
+    "orientation": "portrait",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Resale Scanner to access your camera to scan product barcodes."
+        }
+      ]
+    ],
+    "scheme": "resale-scanner",
+    "slug": "resale-scanner",
+    "userInterfaceStyle": "automatic",
+    "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "7b3d560a-23df-4af0-bfd5-2e1327b312d2"
+      }
+    }
+  }
+}

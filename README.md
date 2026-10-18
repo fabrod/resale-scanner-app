@@ -21,6 +21,11 @@ src/screens/            → Scanner, ManualEntry, Verdict, ListIt, History, Sett
 backend/server.js       → Express API-key proxy (:3001)
 ```
 
+The native entry point is `index.js`, which calls Expo's
+`registerRootComponent(App)`. Keep `package.json`'s `main` pointed there.
+Launching `App.js` directly without registration causes the startup error
+`"main" has not been registered` in Expo Go and standalone builds.
+
 ## 1. Run the app locally
 
 ```bash
@@ -28,6 +33,15 @@ npm install
 npx expo start
 # scan the QR with Expo Go on your iPhone
 ```
+
+After changing the entry point, restart Metro with `npx expo start --clear`.
+Use Expo Go compatible with this project's Expo SDK 57. The iOS Simulator
+can test manual entry; test barcode scanning on a physical device.
+
+Run `npm test` for startup, scanner lifecycle, saved history, and verdict
+regression checks. Run `npx expo export --platform ios` to check the release
+bundle before building. TestFlight needs a new EAS build and upload to include
+these fixes; an existing installed build will still contain the old code.
 
 Point it at the backend:
 

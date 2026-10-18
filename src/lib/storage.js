@@ -26,7 +26,15 @@ export async function saveSettings(settings) {
 export async function loadHistory() {
   try {
     const raw = await AsyncStorage.getItem(HISTORY_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const history = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(history)) return [];
+    return history.filter((record) => (
+      record !== null &&
+      typeof record === 'object' &&
+      typeof record.id === 'string' &&
+      typeof record.product === 'string' &&
+      typeof record.verdict === 'string'
+    ));
   } catch {
     return [];
   }
