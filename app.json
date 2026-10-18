@@ -15,7 +15,7 @@
     "icon": "./assets/icon.png",
     "ios": {
       "bundleIdentifier": "com.fabrod.resalescanner",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "NSCameraUsageDescription": "Resale Scanner uses your camera to scan product barcodes in the store.",
         "ITSAppUsesNonExemptEncryption": false
