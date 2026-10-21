@@ -70,8 +70,8 @@ Local artifacts (ignored by Git):
 - `build-artifacts/build-5-iphone-launch.png`: release launch screenshot.
 - `build-artifacts/build-5-ipad-manual-entry.png`: manual entry after camera denial.
 
-The build 5 upload to App Store Connect was queued on October 21, 2026:
-[EAS submission status](https://expo.dev/accounts/fabrod/projects/resale-scanner/submissions/284e38cb-ace4-430a-871f-9bb265522cb7).
+Build 5 was successfully uploaded to App Store Connect on October 21, 2026:
+[EAS submission record](https://expo.dev/accounts/fabrod/projects/resale-scanner/submissions/284e38cb-ace4-430a-871f-9bb265522cb7).
 Physical-device testing and App Review resubmission remain pending.
 
 ## Before resubmitting
