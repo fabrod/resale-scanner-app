@@ -38,10 +38,17 @@ After changing the entry point, restart Metro with `npx expo start --clear`.
 Use Expo Go compatible with this project's Expo SDK 57. The iOS Simulator
 can test manual entry; test barcode scanning on a physical device.
 
-Run `npm test` for startup, scanner lifecycle, saved history, and verdict
-regression checks. Run `npx expo export --platform ios` to check the release
+Run `npm test` for native iOS scene configuration, startup, scanner lifecycle,
+saved history, and verdict regression checks. Run `npx expo export --platform ios` to check the release
 bundle before building. TestFlight needs a new EAS build and upload to include
 these fixes; an existing installed build will still contain the old code.
+
+For builds using the iOS 27 SDK, keep `expo-build-properties` configured with
+`ios.enableSceneSupport: true` while this app uses Expo SDK 57. This config
+generates both the scene manifest and the AppDelegate changes needed to launch
+on iOS 27. Expo Go and iOS 26 testing cannot detect the missing-scene assertion
+that caused the build 4 rejection. See [the crash diagnosis](store/build-5-launch-fix.md)
+for evidence and release validation steps.
 
 Point it at the backend:
 

@@ -25,7 +25,8 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "fabioanel@me.com"
+        "appleId": "fabioanel@me.com",
+        "ascAppId": "6823328778"
       }
     }
   }

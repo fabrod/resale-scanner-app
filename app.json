@@ -15,7 +15,7 @@
     "icon": "./assets/icon.png",
     "ios": {
       "bundleIdentifier": "com.fabrod.resalescanner",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
         "NSCameraUsageDescription": "Resale Scanner uses your camera to scan product barcodes in the store.",
         "ITSAppUsesNonExemptEncryption": false
@@ -25,6 +25,14 @@
     "name": "Resale Scanner",
     "orientation": "portrait",
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ],
       [
         "expo-camera",
         {

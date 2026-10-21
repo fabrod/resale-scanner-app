@@ -5,6 +5,7 @@
     "@react-navigation/native-stack": "^7.0.0",
     "expo": "^57.0.30",
     "expo-asset": "~57.0.20",
+    "expo-build-properties": "~57.0.22",
     "expo-camera": "~57.0.6",
     "expo-clipboard": "~57.0.2",
     "expo-constants": "~57.0.22",
