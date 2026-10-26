@@ -1,1 +1,15 @@
-{"dependencies":{"express":"^4.21.0"},"main":"server.js","name":"resale-scanner-backend","private":true,"scripts":{"start":"node server.js"},"version":"1.0.0"}
+{
+  "name": "resale-scanner-backend",
+  "version": "1.0.0",
+  "private": true,
+  "main": "server.js",
+  "engines": {
+    "node": ">=20.12.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

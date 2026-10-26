@@ -14,6 +14,18 @@
  */
 
 const express = require('express');
+const path = require('node:path');
+
+function loadLocalEnvironment(filename = path.join(__dirname, '.env')) {
+  try {
+    // Existing deployment environment variables take precedence over .env.
+    process.loadEnvFile(filename);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+}
+
+loadLocalEnvironment();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,6 +37,73 @@ const UPCITEMDB_KEY = process.env.UPCITEMDB_KEY || ''; // paid tier key; empty =
 // no card: https://app.compsapi.com. Paid plans from $9.
 const SOLD_API_KEY = process.env.SOLD_API_KEY || '';
 const SOLD_API_URL = process.env.SOLD_API_URL || 'https://api.compsapi.com';
+const configuredOrigins = new Set((process.env.CORS_ORIGINS || '').split(',').map((origin) => origin.trim()).filter(Boolean));
+const PROVIDER_TIMEOUT_MS = 12000;
+const UPC_ERROR_CODES = new Set(['AUTH_ERR', 'EXCEED_LIMIT', 'TOO_FAST']);
+const NETWORK_ERROR_CODES = new Set([
+  'ENOTFOUND', 'EAI_AGAIN', 'ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT',
+  'ENETUNREACH', 'EHOSTUNREACH', 'CERT_HAS_EXPIRED',
+  'UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'DEPTH_ZERO_SELF_SIGNED_CERT',
+  'ERR_TLS_CERT_ALTNAME_INVALID', 'UND_ERR_CONNECT_TIMEOUT',
+  'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT', 'UND_ERR_SOCKET',
+]);
+
+app.use((req, res, next) => {
+  const origin = req.get('Origin');
+  res.vary('Origin');
+  if (origin && (/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin) || configuredOrigins.has(origin))) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Accept');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
+async function fetchProviderJson(provider, url, options = {}) {
+  let response;
+  try {
+    response = await fetch(url, { ...options, signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS) });
+    if (!response.ok) {
+      const error = new Error('upstream response failed');
+      error.safeUpstreamDetails = {};
+      if (provider === 'upcitemdb') {
+        // Only documented error codes and numeric quota metadata are retained.
+        // Provider messages may contain account information, so never log them.
+        for (const [header, field] of [
+          ['x-ratelimit-remaining', 'rateLimitRemaining'],
+          ['x-ratelimit-reset', 'rateLimitReset'],
+        ]) {
+          const value = response.headers.get(header);
+          if (value !== null && /^\d+$/.test(value) && Number.isSafeInteger(Number(value))) {
+            error.safeUpstreamDetails[field] = Number(value);
+          }
+        }
+        const body = await response.json().catch(() => null);
+        if (UPC_ERROR_CODES.has(body?.code)) error.safeUpstreamDetails.upstreamCode = body.code;
+      }
+      throw error;
+    }
+    return await response.json();
+  } catch (error) {
+    // Never include provider URLs, response bodies or authorization headers.
+    const timeout = error.name === 'TimeoutError' || error.name === 'AbortError';
+    const diagnostic = { provider, reason: timeout ? 'timeout' : 'upstream_failure' };
+    if (response) diagnostic.upstreamStatus = response.status;
+    Object.assign(diagnostic, error.safeUpstreamDetails);
+    const networkCode = [error.cause?.code, error.code].find((code) => NETWORK_ERROR_CODES.has(code));
+    if (networkCode) diagnostic.networkCode = networkCode;
+    console.warn('Provider request failed', diagnostic);
+    const failure = new Error('provider request failed');
+    failure.status = timeout ? 504 : 502;
+    failure.diagnostic = diagnostic;
+    throw failure;
+  }
+}
+
+function sendProviderFailure(res, error, message) {
+  res.status(error.status || 502).json({ error: message, ...error.diagnostic });
+}
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
@@ -76,9 +155,7 @@ app.get('/api/lookup', async (req, res) => {
       ? `https://api.upcitemdb.com/prod/v1/lookup?upc=${upc}`
       : `https://api.upcitemdb.com/prod/trial/lookup?upc=${upc}`;
     const headers = UPCITEMDB_KEY ? { user_key: UPCITEMDB_KEY, key_type: '3scale' } : {};
-    const r = await fetch(endpoint, { headers });
-    if (!r.ok) return res.status(502).json({ error: 'lookup failed' });
-    const data = await r.json();
+    const data = await fetchProviderJson('upcitemdb', endpoint, { headers });
     const item = data.items && data.items[0];
     if (!item) return res.status(404).json({ error: 'not found' });
     res.json({
@@ -87,7 +164,7 @@ app.get('/api/lookup', async (req, res) => {
       image: (item.images && item.images[0]) || null,
     });
   } catch (e) {
-    res.status(502).json({ error: 'lookup failed' });
+    sendProviderFailure(res, e, 'lookup failed');
   }
 });
 
@@ -136,4 +213,8 @@ app.get('/api/comps', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`resale-scanner backend on :${PORT}`));
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`resale-scanner backend on :${PORT}`));
+}
+
+module.exports = { app, loadLocalEnvironment };
