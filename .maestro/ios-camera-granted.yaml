@@ -1,0 +1,11 @@
+appId: com.fabrod.resalescanner
+---
+- launchApp:
+    permissions:
+      camera: allow
+- extendedWaitUntil:
+    visible: "Point at the product barcode (the striped one)."
+    timeout: 30000
+- assertNotVisible: "Continue"
+- assertNotVisible: "Open Settings"
+- assertVisible: "Enter manually"

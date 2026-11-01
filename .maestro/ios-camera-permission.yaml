@@ -1,0 +1,25 @@
+appId: com.fabrod.resalescanner
+---
+- launchApp:
+    permissions:
+      camera: unset
+- extendedWaitUntil:
+    visible: "Real Scanner uses your camera to scan documents. iOS will ask whether you want to allow camera access."
+    timeout: 30000
+- assertVisible: "Continue"
+- assertVisible: "Not now"
+- assertNotVisible: "Allow camera"
+- assertNotVisible: "Enable camera"
+- tapOn: "Continue"
+- extendedWaitUntil:
+    visible: ".*Would Like to Access the Camera.*"
+    timeout: 10000
+- tapOn: "Don’t Allow"
+- extendedWaitUntil:
+    visible: "Camera access is turned off.*"
+    timeout: 10000
+- assertVisible: "Open Settings"
+- assertVisible: "Enter manually instead"
+- tapOn: "Enter manually instead"
+- assertVisible: "Type the UPC digits"
+- assertVisible: "Look up UPC"

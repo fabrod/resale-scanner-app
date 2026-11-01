@@ -1,0 +1,26 @@
+appId: com.fabrod.resalescanner
+---
+- launchApp:
+    permissions:
+      camera: deny
+- extendedWaitUntil:
+    visible: "Camera access is turned off.*"
+    timeout: 30000
+- assertVisible: "Open Settings"
+- tapOn: "Open Settings"
+- extendedWaitUntil:
+    visible: "Camera"
+    timeout: 10000
+- setPermissions:
+    appId: com.fabrod.resalescanner
+    permissions:
+      camera: allow
+- launchApp:
+    permissions:
+      camera: allow
+- extendedWaitUntil:
+    visible: "Point at the product barcode (the striped one)."
+    timeout: 30000
+- assertNotVisible: "Continue"
+- assertNotVisible: "Open Settings"
+- assertVisible: "Enter manually"
