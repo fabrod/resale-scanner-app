@@ -19,14 +19,25 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-function scannerHarness(lookupUpc, permission = { granted: true }) {
+function scannerHarness(lookupUpc, permission = { granted: true, status: 'granted' }) {
   const hooks = createHooks();
   let focused = true;
   let focusEffect;
   let focusCleanup;
   const navigations = [];
+  const openedSettings = [];
+  let appStateHandler;
   const native = Object.fromEntries(['View', 'Text', 'TouchableOpacity'].map((name) => [name, name]));
   native.StyleSheet = { create: (styles) => styles };
+  native.AppState = {
+    addEventListener: (_event, handler) => {
+      appStateHandler = handler;
+      return { remove: () => {} };
+    },
+  };
+  native.Linking = { openSettings: async () => { openedSettings.push(true); } };
+  let permissionRequests = 0;
+  let permissionChecks = 0;
   const ScannerScreen = loadSource('src/screens/ScannerScreen.js', {
     react: hooks.react,
     '@react-navigation/native': {
@@ -34,7 +45,14 @@ function scannerHarness(lookupUpc, permission = { granted: true }) {
       useFocusEffect: (effect) => { focusEffect = effect; },
     },
     'react-native': native,
-    'expo-camera': { CameraView: 'CameraView', useCameraPermissions: () => [permission, () => {}] },
+    'expo-camera': {
+      CameraView: 'CameraView',
+      useCameraPermissions: () => [
+        permission,
+        async () => { permissionRequests += 1; return permission; },
+        async () => { permissionChecks += 1; return permission; },
+      ],
+    },
     '../lib/upc': { lookupUpc },
   }).default;
   const navigation = {
@@ -51,7 +69,15 @@ function scannerHarness(lookupUpc, permission = { granted: true }) {
   };
   render();
   focusCleanup = focusEffect();
-  return { render, setFocused, navigations };
+  return {
+    render,
+    setFocused,
+    navigations,
+    openedSettings,
+    activateApp: () => appStateHandler('active'),
+    permissionRequestCount: () => permissionRequests,
+    permissionCheckCount: () => permissionChecks,
+  };
 }
 
 function camera(tree) {
@@ -108,11 +134,38 @@ test('lookup failure keeps the unknown-product fallback usable', async () => {
   assert.deepEqual(screen.navigations[0][1].product, { title: '', brand: '' });
 });
 
-test('permission denial and camera mount errors retain manual entry', () => {
-  const denied = scannerHarness(async () => null, { granted: false });
-  assert.equal(camera(denied.render()), undefined);
-  assert.equal(nodes(denied.render(), (node) => node.type === 'TouchableOpacity').length, 2);
+test('first-run explanation uses neutral actions and requests permission only after Continue', async () => {
+  const firstRun = scannerHarness(async () => null, { granted: false, status: 'undetermined' });
+  const tree = firstRun.render();
+  const copy = nodes(tree, (node) => node.type === 'Text').flatMap((node) => node.props.children).join(' ');
+  assert.match(copy, /Real Scanner uses your camera to scan documents/);
+  assert.match(copy, /Continue/);
+  assert.match(copy, /Not now/);
+  const actions = nodes(tree, (node) => node.type === 'TouchableOpacity');
+  const buttonLabels = actions.flatMap((action) => nodes(action, (node) => node.type === 'Text'))
+    .flatMap((node) => node.props.children)
+    .join(' ');
+  assert.doesNotMatch(buttonLabels, /Allow camera|Enable camera/i);
+  assert.equal(firstRun.permissionRequestCount(), 0);
+  await actions[0].props.onPress();
+  assert.equal(firstRun.permissionRequestCount(), 1);
+  actions[1].props.onPress();
+  assert.deepEqual(firstRun.navigations, [['ManualEntry']]);
+});
 
+test('denied permission offers Settings without requesting again and refreshes on app return', async () => {
+  const denied = scannerHarness(async () => null, { granted: false, status: 'denied', canAskAgain: false });
+  assert.equal(camera(denied.render()), undefined);
+  const actions = nodes(denied.render(), (node) => node.type === 'TouchableOpacity');
+  assert.equal(actions.length, 2);
+  await actions[0].props.onPress();
+  assert.equal(denied.openedSettings.length, 1);
+  assert.equal(denied.permissionRequestCount(), 0);
+  await denied.activateApp();
+  assert.equal(denied.permissionCheckCount(), 1);
+});
+
+test('camera mount errors retain manual entry', () => {
   const screen = scannerHarness(async () => null);
   camera(screen.render()).props.onMountError({ message: 'Camera unavailable' });
   const tree = screen.render();

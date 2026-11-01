@@ -1,11 +1,11 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { AppState, Linking, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { lookupUpc } from '../lib/upc';
 
 export default function ScannerScreen({ navigation }) {
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission, requestPermission, getPermission] = useCameraPermissions();
   const isFocused = useIsFocused();
   const scanInFlight = useRef(false);
   const scanSession = useRef(0);
@@ -21,16 +21,34 @@ export default function ScannerScreen({ navigation }) {
     return () => { scanSession.current += 1; };
   }, []));
 
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') getPermission().catch(() => {});
+    });
+    return () => subscription.remove();
+  }, [getPermission]);
+
   if (!permission) return <View style={styles.center}><Text>Requesting camera…</Text></View>;
   if (!permission.granted) {
+    const hasBeenDenied = permission.status === 'denied';
     return (
       <View style={styles.center}>
-        <Text style={styles.text}>Camera access is needed to scan barcodes.</Text>
-        <TouchableOpacity style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Allow camera</Text>
-        </TouchableOpacity>
+        <Text style={styles.text}>
+          {hasBeenDenied
+            ? 'Camera access is turned off. You can enable it in Settings to scan documents, or continue without it.'
+            : 'Real Scanner uses your camera to scan documents. iOS will ask whether you want to allow camera access.'}
+        </Text>
+        {hasBeenDenied ? (
+          <TouchableOpacity style={styles.button} onPress={() => Linking.openSettings()}>
+            <Text style={styles.buttonText}>Open Settings</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.button} onPress={requestPermission}>
+            <Text style={styles.buttonText}>Continue</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={[styles.button, styles.secondary]} onPress={() => navigation.navigate('ManualEntry')}>
-          <Text style={styles.buttonText}>Enter manually instead</Text>
+          <Text style={styles.buttonText}>{hasBeenDenied ? 'Enter manually instead' : 'Not now'}</Text>
         </TouchableOpacity>
       </View>
     );
