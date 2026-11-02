@@ -103,6 +103,25 @@ All iOS releases should pass this Maestro suite before upload to App Store
 Connect. Maestro validates the native UI and permission flow in the simulator;
 real barcode-camera decoding must also be checked on a physical iPhone.
 
+### Why the project keeps both Maestro and Cypress
+
+The two suites protect different parts of the app and are intentionally kept
+together:
+
+- **Maestro** exercises the installed native iOS app as a user would. It covers
+  navigation, the custom camera explanation, Apple's permission states, manual
+  entry, and returning from Settings.
+- **Cypress** supplies a generated barcode video to the web camera stream. This
+  exercises Expo's real barcode decoder plus controlled API success/failure,
+  repeat scans, verdict math, saved history, listing copy, and marketplace
+  handoffs without requiring a person to hold a barcode in front of a phone.
+- **Physical iPhone testing** remains the final hardware check for focus,
+  lighting, camera framing, and real barcode recognition.
+
+Keeping all three layers makes failures easier to locate: Maestro catches iOS
+integration regressions, Cypress catches deterministic scanner and workflow
+regressions, and the physical-device check catches camera-hardware behavior.
+
 Run `npm test` for native iOS scene configuration, startup, scanner lifecycle,
 saved history, verdict, and backend HTTP regression checks. Install backend
 dependencies first with `npm --prefix backend install`. Run `npx expo export --platform ios` to check the release

@@ -4,3 +4,7 @@ dist/
 build-artifacts/
 .env
 .DS_Store
+cypress/fixtures/*.y4m
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
